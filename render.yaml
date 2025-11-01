@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     buildCommand: npm install --legacy-peer-deps --omit=optional && npm run playwright-install
-    startCommand: NODE_ENV=production ts-node -T src/production-safe-server.ts
+    startCommand: ts-node -T src/production-safe-server.ts
     envVars:
       - key: NODE_ENV
         value: production

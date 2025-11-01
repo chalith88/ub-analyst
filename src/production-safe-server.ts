@@ -28,8 +28,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173", 
     "http://127.0.0.1:5173",
-    "https://ub-scraper.netlify.app",
-    // Add your actual Netlify domain when deployed
+    "https://ub-analyst.netlify.app",
+    // Allow all Netlify domains
     /^https:\/\/.*\.netlify\.app$/,
     /^https:\/\/.*\.netlify\.com$/
   ],
