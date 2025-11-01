@@ -3,7 +3,7 @@ services:
     name: ub-analyst-api
     runtime: node
     plan: starter
-    buildCommand: npm install --legacy-peer-deps && npm run playwright-install
+    buildCommand: npm install --legacy-peer-deps --omit=optional && npm run playwright-install
     startCommand: npm start
     envVars:
       - key: NODE_ENV

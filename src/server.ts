@@ -9,12 +9,14 @@ import { XMLParser } from "fast-xml-parser";
 
 import { scrapeHNB } from "./scrapers/hnb";
 import { scrapeSeylan } from "./scrapers/seylan";
-// PDF parser - may not work in production
+// PDF parser - disabled in production to avoid crashes
 let scrapeSampath: any = null;
-try {
-  scrapeSampath = require("./scrapers/sampath").scrapeSampath;
-} catch (error) {
-  console.warn('Sampath PDF scraper not available in production environment');
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    scrapeSampath = require("./scrapers/sampath").scrapeSampath;
+  } catch (error) {
+    console.warn('Sampath PDF scraper not available');
+  }
 }
 import { scrapeCombank } from "./scrapers/combank";
 import { scrapeNDB } from "./scrapers/ndb";
@@ -29,7 +31,15 @@ import { scrapeAmana } from "./scrapers/amana";
 import { scrapeCBSL } from "./scrapers/cbsl";
 import { scrapeHnbTariff } from "./scrapers/hnb-tariff";
 import { scrapeSeylanTariff } from "./scrapers/seylan-tariff";
-import { scrapeSampathTariff } from "./scrapers/sampath-tariff";
+// Sampath tariff scraper - disabled in production
+let scrapeSampathTariff: any = null;
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    scrapeSampathTariff = require("./scrapers/sampath-tariff").scrapeSampathTariff;
+  } catch (error) {
+    console.warn('Sampath tariff scraper not available');
+  }
+}
 import { scrapeCombankTariff } from "./scrapers/combank_tariff";
 import { scrapeNdbTariff } from "./scrapers/ndb-tariff";
 import { scrapeUnionbTariff } from "./scrapers/unionb-tariff";
@@ -663,6 +673,13 @@ app.get("/scrape/seylan-tariff", async (req, res) => {
 
 /** Sampath-Tariff */
 app.get("/scrape/sampath-tariff", async (req, res) => {
+  if (!scrapeSampathTariff) {
+    res.status(503).json({ 
+      error: "Sampath tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const data = await scrapeSampathTariff();
     res.json(data);
