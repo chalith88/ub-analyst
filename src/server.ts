@@ -9,46 +9,50 @@ import { XMLParser } from "fast-xml-parser";
 
 import { scrapeHNB } from "./scrapers/hnb";
 import { scrapeSeylan } from "./scrapers/seylan";
-// PDF parser - disabled in production to avoid crashes
-let scrapeSampath: any = null;
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    scrapeSampath = require("./scrapers/sampath").scrapeSampath;
-  } catch (error) {
-    console.warn('Sampath PDF scraper not available');
-  }
-}
 import { scrapeCombank } from "./scrapers/combank";
 import { scrapeNDB } from "./scrapers/ndb";
 import { scrapeUnionBank } from "./scrapers/unionb";
 import { scrapePeoples } from "./scrapers/peoples";
-import { scrapeDFCC } from "./scrapers/dfcc";
 import { scrapeNSB } from "./scrapers/nsb";
 import { scrapeBOC } from "./scrapers/boc";
-import { scrapeCargills } from "./scrapers/cargills";
-import { scrapeNTB } from "./scrapers/ntb";
-import { scrapeAmana } from "./scrapers/amana";
 import { scrapeCBSL } from "./scrapers/cbsl";
 import { scrapeHnbTariff } from "./scrapers/hnb-tariff";
 import { scrapeSeylanTariff } from "./scrapers/seylan-tariff";
-// Sampath tariff scraper - disabled in production
-let scrapeSampathTariff: any = null;
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    scrapeSampathTariff = require("./scrapers/sampath-tariff").scrapeSampathTariff;
-  } catch (error) {
-    console.warn('Sampath tariff scraper not available');
-  }
-}
 import { scrapeCombankTariff } from "./scrapers/combank_tariff";
-import { scrapeNdbTariff } from "./scrapers/ndb-tariff";
 import { scrapeUnionbTariff } from "./scrapers/unionb-tariff";
-import { scrapeDfccTariff } from "./scrapers/dfcc-tariff";
 import { scrapeNSBTariff } from "./scrapers/nsb-tariff";
 import { scrapeBocTariff } from "./scrapers/boc-tariff";
-import { scrapeCargillsTariff } from "./scrapers/cargills-tariff";
-import { scrapeNtbTariff } from "./scrapers/ntb-tariff";
-import { scrapeAmanaTariff } from "./scrapers/amana-tariff";
+
+// PDF-dependent scrapers - only loaded when not in production to avoid crashes
+let scrapeSampath: any = null;
+let scrapeDFCC: any = null;
+let scrapeCargills: any = null;
+let scrapeNTB: any = null;
+let scrapeAmana: any = null;
+let scrapeSampathTariff: any = null;
+let scrapeDfccTariff: any = null;
+let scrapeNdbTariff: any = null;
+let scrapeCargillsTariff: any = null;
+let scrapeNtbTariff: any = null;
+let scrapeAmanaTariff: any = null;
+
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    scrapeSampath = require("./scrapers/sampath").scrapeSampath;
+    scrapeDFCC = require("./scrapers/dfcc").scrapeDFCC;
+    scrapeCargills = require("./scrapers/cargills").scrapeCargills;
+    scrapeNTB = require("./scrapers/ntb").scrapeNTB;
+    scrapeAmana = require("./scrapers/amana").scrapeAmana;
+    scrapeSampathTariff = require("./scrapers/sampath-tariff").scrapeSampathTariff;
+    scrapeDfccTariff = require("./scrapers/dfcc-tariff").scrapeDfccTariff;
+    scrapeNdbTariff = require("./scrapers/ndb-tariff").scrapeNdbTariff;
+    scrapeCargillsTariff = require("./scrapers/cargills-tariff").scrapeCargillsTariff;
+    scrapeNtbTariff = require("./scrapers/ntb-tariff").scrapeNtbTariff;
+    scrapeAmanaTariff = require("./scrapers/amana-tariff").scrapeAmanaTariff;
+  } catch (error) {
+    console.warn('PDF scrapers not available:', error.message);
+  }
+}
 import { scrapePeoplesTariff } from "./scrapers/peoples-tariff";
 
 const app = express();
@@ -591,6 +595,13 @@ app.get("/scrape/peoples", async (req, res) => {
 });
 
 app.get("/scrape/dfcc", async (req, res) => {
+  if (!scrapeDFCC) {
+    res.status(503).json({ 
+      error: "DFCC PDF scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const data = await scrapeDFCC({ show: req.query.show === "true", slow: Number(req.query.slow || 0) });
     await maybeSave("DFCC", data, req.query.save === "true");
@@ -615,6 +626,13 @@ app.get("/scrape/boc", async (req, res) => {
 });
 
 app.get("/scrape/cargills", async (req, res) => {
+  if (!scrapeCargills) {
+    res.status(503).json({ 
+      error: "Cargills PDF scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const data = await scrapeCargills({
       show: (req.query.show as string) || "false",
@@ -626,11 +644,25 @@ app.get("/scrape/cargills", async (req, res) => {
 });
 
 app.get("/scrape/ntb", async (_req, res) => {
+  if (!scrapeNTB) {
+    res.status(503).json({ 
+      error: "NTB PDF scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try { res.json(await scrapeNTB()); }
   catch (e: any) { res.status(500).json({ error: String(e?.message || e) }); }
 });
 
 app.get("/scrape/amana", async (_req, res) => {
+  if (!scrapeAmana) {
+    res.status(503).json({ 
+      error: "Amana PDF scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try { res.json(await scrapeAmana()); }
   catch (e: any) { res.status(500).json({ error: String(e?.message || e) }); }
 });
@@ -690,6 +722,13 @@ app.get("/scrape/sampath-tariff", async (req, res) => {
 
 /** NDB-Tariff */
 app.get("/scrape/ndb-tariff", async (req, res) => {
+  if (!scrapeNdbTariff) {
+    res.status(503).json({ 
+      error: "NDB tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const data = await scrapeNdbTariff({
       show: req.query.show === "true",
@@ -724,6 +763,13 @@ app.get("/scrape/unionb-tariff", async (_req, res) => {
 
 /** DFCC-Tariff */
 app.get("/scrape/dfcc-tariff", async (req, res) => {
+  if (!scrapeDfccTariff) {
+    res.status(503).json({ 
+      error: "DFCC tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const data = await scrapeDfccTariff();
     res.json(data);
@@ -759,6 +805,13 @@ app.get("/scrape/boc-tariff", async (req, res) => {
 
 // Cargills Tariff (fees/charges)
 app.get("/scrape/cargills-tariff", async (req, res) => {
+  if (!scrapeCargillsTariff) {
+    res.status(503).json({ 
+      error: "Cargills tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const rows = await scrapeCargillsTariff({ show: String(req.query.show||""), slow: String(req.query.slow||""), save: String(req.query.save||"") });
     res.json(rows);
@@ -769,6 +822,13 @@ app.get("/scrape/cargills-tariff", async (req, res) => {
 
 // NTB Tariff (fees/charges)
 app.get("/scrape/ntb-tariff", async (req, res) => {
+  if (!scrapeNtbTariff) {
+    res.status(503).json({ 
+      error: "NTB tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const rows = await scrapeNtbTariff({
       show: String(req.query.show || ""),
@@ -783,6 +843,13 @@ app.get("/scrape/ntb-tariff", async (req, res) => {
 
 /** Amana-Tariff (OCR lines first pass) */
 app.get("/scrape/amana-tariff", async (req, res) => {
+  if (!scrapeAmanaTariff) {
+    res.status(503).json({ 
+      error: "Amana tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const rows = await scrapeAmanaTariff({
       show: String(req.query.show || ""),
