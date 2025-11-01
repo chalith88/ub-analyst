@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node -T src/server.ts",
     "build": "echo 'Using ts-node for production'",
-    "start": "ts-node -T src/server.ts",
+    "start": "NODE_ENV=production ts-node -T src/server.ts",
     "playwright-install": "playwright install chromium",
     "test:tariff": "ts-node -T src/tariff/normalize.run.ts"
   },

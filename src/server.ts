@@ -35,6 +35,7 @@ let scrapeNdbTariff: any = null;
 let scrapeCargillsTariff: any = null;
 let scrapeNtbTariff: any = null;
 let scrapeAmanaTariff: any = null;
+let scrapePeoplesTariff: any = null;
 
 if (process.env.NODE_ENV !== 'production') {
   try {
@@ -49,11 +50,11 @@ if (process.env.NODE_ENV !== 'production') {
     scrapeCargillsTariff = require("./scrapers/cargills-tariff").scrapeCargillsTariff;
     scrapeNtbTariff = require("./scrapers/ntb-tariff").scrapeNtbTariff;
     scrapeAmanaTariff = require("./scrapers/amana-tariff").scrapeAmanaTariff;
+    scrapePeoplesTariff = require("./scrapers/peoples-tariff").scrapePeoplesTariff;
   } catch (error) {
-    console.warn('PDF scrapers not available:', error.message);
+    console.warn('PDF scrapers not available:', (error as Error).message);
   }
 }
-import { scrapePeoplesTariff } from "./scrapers/peoples-tariff";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -865,6 +866,13 @@ app.get("/scrape/amana-tariff", async (req, res) => {
 
 /** Peoples-Tariff (OCR lines first pass) */
 app.get("/scrape/peoples-tariff", async (req, res) => {
+  if (!scrapePeoplesTariff) {
+    res.status(503).json({ 
+      error: "Peoples tariff scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   try {
     const rows = await scrapePeoplesTariff({
       show: String(req.query.show || ""),
