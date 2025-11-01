@@ -1225,6 +1225,9 @@ function UBRateAnalyst() {
 
   const API_BASE =
     import.meta.env.DEV ? "" : (window as any).__UB_BASE__ || "";
+  
+  // Debug: Log the API base to console
+  console.log("🔧 API_BASE:", API_BASE, "isDev:", import.meta.env.DEV);
 
   return (
     <div
