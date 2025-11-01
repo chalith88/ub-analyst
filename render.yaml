@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ub-scraper-api
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run playwright-install
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: ub-scraper-api
+          property: port
+    healthCheckPath: /health
+    autoDeploy: true
+    region: oregon
