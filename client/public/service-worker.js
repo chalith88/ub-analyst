@@ -32,20 +32,27 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip non-GET requests and chrome-extension requests
+  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {
+    return;
+  }
+
   // API calls - network first with cache fallback
   if (url.pathname.startsWith('/scrape/') || url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then(response => {
           // Only cache successful responses
-          if (response.status === 200) {
+          if (response.ok && response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME)
-              .then(cache => cache.put(request, responseClone));
+              .then(cache => cache.put(request, responseClone))
+              .catch(err => console.log('Cache put failed:', err));
           }
           return response;
         })
-        .catch(() => {
+        .catch(err => {
+          console.log('Network fetch failed, trying cache:', err);
           // Fallback to cache if network fails
           return caches.match(request);
         })
@@ -53,20 +60,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets - cache first
-  if (request.method === 'GET') {
+  // Static assets - cache first, but skip if same origin issues
+  if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request)
         .then(response => {
           return response || fetch(request)
             .then(fetchResponse => {
               // Cache the fetched resource
-              if (fetchResponse.status === 200) {
+              if (fetchResponse.ok && fetchResponse.status === 200) {
                 const responseClone = fetchResponse.clone();
                 caches.open(CACHE_NAME)
-                  .then(cache => cache.put(request, responseClone));
+                  .then(cache => cache.put(request, responseClone))
+                  .catch(err => console.log('Cache put failed:', err));
               }
               return fetchResponse;
+            })
+            .catch(err => {
+              console.log('Fetch failed:', err);
+              return new Response('Network error', { status: 408 });
             });
         })
     );
