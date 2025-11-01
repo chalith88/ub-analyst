@@ -1,12 +1,13 @@
 [build]
   base = "client"
-  publish = "client/dist"
-  command = "npm run build"
+  publish = "dist"
+  command = "npm ci && npm run build"
 
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "10"
   CI = "false"
+  NPM_CONFIG_PRODUCTION = "false"
 
 [[redirects]]
   from = "/scrape/*"
