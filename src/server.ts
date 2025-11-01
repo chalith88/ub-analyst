@@ -9,7 +9,13 @@ import { XMLParser } from "fast-xml-parser";
 
 import { scrapeHNB } from "./scrapers/hnb";
 import { scrapeSeylan } from "./scrapers/seylan";
-import { scrapeSampath } from "./scrapers/sampath";    // PDF parser
+// PDF parser - may not work in production
+let scrapeSampath: any = null;
+try {
+  scrapeSampath = require("./scrapers/sampath").scrapeSampath;
+} catch (error) {
+  console.warn('Sampath PDF scraper not available in production environment');
+}
 import { scrapeCombank } from "./scrapers/combank";
 import { scrapeNDB } from "./scrapers/ndb";
 import { scrapeUnionBank } from "./scrapers/unionb";
@@ -483,6 +489,15 @@ async function handlePdfScrape(
   bankName: string
 ) {
   try {
+    // Check if we're in production and PDF processing might not work
+    if (process.env.NODE_ENV === 'production') {
+      res.status(503).json({ 
+        error: `${bankName} PDF scraping temporarily unavailable in production environment`,
+        message: "This endpoint requires PDF processing which is not available on this server configuration"
+      });
+      return;
+    }
+    
     const outDir = await ensureOutputDir();
     const outPath = path.join(outDir, outFile);
     const rows = await scraper(pdfUrl, outPath);
@@ -490,7 +505,11 @@ async function handlePdfScrape(
     else res.type("json").send(await fs.readFile(outPath, "utf8"));
   } catch (err) {
     console.error(`Error scraping ${bankName}:`, err);
-    res.status(500).send({ error: String(err) });
+    res.status(500).send({ 
+      error: `${bankName} scraping failed`,
+      details: String(err),
+      message: "PDF processing unavailable in production environment"
+    });
   }
 }
 
@@ -514,11 +533,18 @@ app.get("/scrape/seylan", async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: String(e?.message || e) }); }
 });
 
-app.get("/scrape/sampath", (req, res) =>
+app.get("/scrape/sampath", (req, res) => {
+  if (!scrapeSampath) {
+    res.status(503).json({ 
+      error: "Sampath PDF scraping unavailable in production environment",
+      message: "This endpoint requires PDF processing capabilities"
+    });
+    return;
+  }
   handlePdfScrape(req, res, scrapeSampath,
     "https://www.sampath.lk/common/loan/interest-rates-loan-and-advances.pdf",
     "sampath.json", "Sampath")
-);
+});
 
 app.get("/scrape/combank", async (req, res) => {
   try {
@@ -902,7 +928,16 @@ app.get("/scrape/tariffs-all", async (req, res) => {
 
 /* ---------------- Start server ---------------- */
 app.listen(PORT, () => {
-  console.log(`??? UB Scraper API running at http://localhost:${PORT}`);
+  console.log(`🚀 UB Scraper API running at http://localhost:${PORT}`);
+  
+  // Check environment capabilities
+  if (process.env.NODE_ENV === 'production') {
+    console.log('📊 Production mode: PDF scrapers may be limited');
+    console.log('✅ Playwright scrapers: Available');
+    console.log('⚠️  PDF scrapers (Sampath): May be unavailable');
+  }
+  
+  console.log(`📖 Visit http://localhost:${PORT}/ for available endpoints`);
 });
 
 
