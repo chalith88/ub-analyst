@@ -9,8 +9,8 @@ import type {
 } from "./types-seylan";
 import { SeylanRateNotFoundError } from "./types-seylan";
 
-// Embedded rate data from seylan.json
-import seylanRatesData from "../../output/seylan.json";
+// Embedded rate data from seylan.json (placeholder for build)
+import seylanRatesData from "../../output/seylan-placeholder.json";
 
 // ============================================================================
 // HELPERS

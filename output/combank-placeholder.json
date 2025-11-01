@@ -1,0 +1,12 @@
+[
+  {
+    "bank": "Commercial Bank",
+    "product": "Home Loan",
+    "type": "fixed",
+    "tenureLabel": "1 year",
+    "tenureYears": 1,
+    "rateWithSalary": "12.00%",
+    "source": "placeholder",
+    "notes": "Placeholder data for build"
+  }
+]

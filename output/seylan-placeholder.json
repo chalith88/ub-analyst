@@ -1,0 +1,16 @@
+[
+  {
+    "bank": "Seylan Bank",
+    "product": "Home Loan",
+    "tenureYears": 1,
+    "tenureLabel": "1 year",
+    "rateWithSalaryAbove700k": "12.00%",
+    "rateWithSalaryBelow700k": "12.50%",
+    "rateWithoutSalary": "13.00%",
+    "rateWithSalaryAbove700kCreditCardInternetBanking": "11.50%",
+    "rateWithSalaryBelow700kCreditCardInternetBanking": "12.00%",
+    "rateWithoutSalaryWithCreditCardInternetBanking": "12.50%",
+    "source": "placeholder",
+    "notes": "Placeholder data for build"
+  }
+]

@@ -26,8 +26,9 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 
-# Output directory
+# Output directory (exclude placeholders needed for build)
 output/*.json
+!output/*-placeholder.json
 output/*.txt
 
 # Temporary files

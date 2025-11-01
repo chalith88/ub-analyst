@@ -2,7 +2,7 @@
 // Supports: Home Loan (HL), Loan Against Property (LAP), Personal Loan (PL), Education Loan
 // Source: combank.json with Standard/Premium/Platinum tiers
 
-import combankData from "../../output/combank.json";
+import combankData from "../../output/combank-placeholder.json";
 
 export interface RateRow {
   key: string;
