@@ -1224,7 +1224,7 @@ function UBRateAnalyst() {
   }
 
   const API_BASE =
-    import.meta.env.DEV ? "" : (window as any).__UB_BASE__ || "http://localhost:3000";
+    import.meta.env.DEV ? "" : (window as any).__UB_BASE__ || "";
 
   return (
     <div
